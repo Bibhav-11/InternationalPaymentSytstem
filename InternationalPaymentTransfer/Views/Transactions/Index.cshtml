@@ -1,0 +1,66 @@
+@{
+    ViewData["Title"] = "Transactions";
+}
+
+<input type="text" name="daterange" value="" />
+
+<table class="mt-3 table table-bordered table-striped" id="transactionsTable" cellspacing="0" width="100%">
+    <thead>
+    <tr>
+        <th>Transaction Id</th>
+        <th>Transaction Date</th>
+        <th>Sender</th>
+        <th>Transfer Amount</th>
+        <th>Receiver</th>
+        <th>Receiver's Bank</th>
+        <th>Payout Amount</th>
+    </tr>
+    </thead>
+</table>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+@section Scripts {
+    <script>
+        var startOfMonth = moment().startOf('month');
+        var currentDate = moment();
+
+        $('input[name="daterange"]').val(startOfMonth.format('MM/DD/YYYY') + ' - ' + currentDate.format('MM/DD/YYYY'));
+
+        var start = startOfMonth.format('YYYY-MM-DD');
+        var current = currentDate.format('YYYY-MM-DD');
+
+    $('input[name="daterange"]').daterangepicker({
+        opens: 'left'
+    }, function(s, e, label) {
+        start = s.format('YYYY-MM-DD'); current = e.format('YYYY-MM-DD');
+        console.log(start, current)
+        $('#transactionsTable').DataTable().ajax.url(`/transactions/GetTransactionData?from=${start}&to=${current}`).load();
+    });
+
+    $('#transactionsTable').DataTable( {
+        ajax: `/transactions/GetTransactionData?from=${start}&to=${current}`,
+        "columns": [
+            { "data": "transactionId" },
+            { 
+                "data": "transactionDate",
+                "render": function (data, type, row) {
+                    if (data) {
+                        return moment(data).format('YYYY-MM-DD');
+                    }
+                    return data; // In case there's no date, return as-is
+                }
+            },
+            { "data": "sender" },
+            { "data": "transferAmountString" },
+            { "data": "receiver" },
+            { "data": "receiverBank" },
+            { "data": "payoutAmountString" },
+        ]
+    } );
+
+    
+    </script>
+}

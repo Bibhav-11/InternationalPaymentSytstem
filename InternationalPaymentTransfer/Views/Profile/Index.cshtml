@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "User Profile";
+}
+
+<h3> User Profile </h3>
+
+<div id="profileContainer">
+    
+</div>
+
+@section Scripts
+{
+    <script>
+       loadProfileView();
+
+        function loadProfileView() {
+            $.ajax({
+                method: "GET",
+                url: "/profile/ProfileInfo",
+                success: function (htmlResponse) {
+                    $("#profileContainer").html(htmlResponse);
+                }
+            })
+        }
+    </script>
+}

@@ -1,0 +1,40 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h4>Exchange Rate for @DateTime.Now.ToString("MMMM dd, yyyy")</h4>
+
+<table class="mt-3 table table-bordered table-striped" id="exchangeRateTable" cellspacing="0" width="100%">
+    <thead>
+    <tr>
+        <th>Currency</th>
+        <th>Unit</th>
+        <th>Buy</th>
+        <th>Sell</th>
+    </tr>
+    </thead>
+</table>
+
+@section Scripts {
+    <script>
+    $(() => {
+        $.ajax({
+            method: "GET",
+            url: "/exchangerate/exchangeratestoday",
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    })
+
+    $('#exchangeRateTable').DataTable( {
+        ajax: '/exchangerate/exchangeratestoday',
+        "columns": [
+            { "data": "currency" },
+            { "data": "unit" },
+            { "data": "buy" },
+            { "data": "sell" }
+        ]
+    } );
+</script>   
+}

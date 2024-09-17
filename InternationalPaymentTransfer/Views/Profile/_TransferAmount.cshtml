@@ -1,0 +1,32 @@
+@model Application.ViewModels.TransferAmountViewModel
+
+
+<div class="row">
+    <div class="col-md-5">
+        Sender: <b>@Model.Sender</b>
+    </div>
+    <div class="col-md-7">
+        Sender's Bank: <b>@Model.SenderBankName (@Model.SenderBankNumber)</b>
+    </div>
+</div>
+<input id="Balance" value="@Model.SenderBalance"  hidden/>
+<form id="transferAmountForm">
+    <div class="mb-4">
+        <label asp-for="BankName"></label>
+        <span class="text-danger">*</span>
+        <input asp-for="BankName" class="form-control"/> 
+        <span asp-validation-for="BankName" class="text-danger"></span>
+    </div>
+    <div class="mb-4">
+        <label asp-for="BankAccountNumber"></label>
+        <span class="text-danger">*</span>
+        <input asp-for="BankAccountNumber" class="form-control"/>
+        <span asp-validation-for="BankAccountNumber" class="text-danger"></span>
+    </div>
+    <div class="mb-4">
+        <label asp-for="Amount"></label>
+        <span class="text-danger">*</span>
+        <input asp-for="Amount" class="form-control"/>
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+</form>

@@ -1,0 +1,22 @@
+@model Application.ViewModels.ConfirmTransferModel
+
+<table class="mt-3 table table-bordered table-striped" id="transactionsTable" cellspacing="0" width="100%">
+    <thead>
+    <tr>
+        <th>Sender</th>
+        <th>Receiver</th>
+        <th>Payment Detail</th>
+    </tr>
+    </thead>
+
+    <tr>
+        <td>@Model.SenderDetail.Sender</td>
+        <td>@Model.ReceiverDetail.Sender</td>
+        <td>@Model.ReceiverDetail.BankName (@Model.ReceiverDetail.BankAccountNumber)</td>
+    </tr>
+    <tr>
+        <td>@Model.TransferAmountString</td>
+        <td>@Model.PayoutAmountString</td>
+        <td>Exchange Rate: 31.54</td>
+    </tr>
+</table>

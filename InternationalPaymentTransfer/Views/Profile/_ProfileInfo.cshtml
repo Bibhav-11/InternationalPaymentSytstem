@@ -1,0 +1,222 @@
+@model Application.ViewModels.ProfileInfoViewModel
+
+@{
+    string currency = ViewData["Currency"] as string ?? string.Empty;
+}
+
+<script>
+    function confirmAddAccount() {
+        var form = $("#exampleModal #accountForm");
+        var data = form.serializeArray();
+        $.validator.unobtrusive.parse(form);
+        if (form.valid()) {
+            $.ajax({
+                method: "POST",
+                url: "/profile/addaccount",
+                data,
+                success: function (response) {
+                    if (response.success) {
+                        ShowNotification(response.message, "success");
+                        closeDialog();
+                        loadProfileView();
+                    }
+                    else {
+                        ShowNotification(response.message, "error");
+                    }
+                },
+                failure: function () {
+                    ShowNotification("Something went wrong", "error");
+                }
+            })
+        }
+    }
+    function addAccount() {
+        openDialog({
+            isAjax: true,
+            url: '/profile/addaccount',
+            title: "Add a new Bank Account",
+            onConfirm: confirmAddAccount
+        });
+    }
+    
+    function loadBalance(id) {
+        var html = `
+            <form id="loadBalanceForm">
+                <div class="form-group">
+                    <label class="form-label">Balance</label>
+                    <span class="text-danger">*</span>
+                    <input name="Balance" id="Balance" class="form-control" data-val="true" data-val-required="Balance is required" />
+                    <span class="text-danger" data-valmsg-replace="true" data-valmsg-for="Balance"></span>
+                </div>
+            </form>
+        `;
+        
+        openDialog({
+            isAjax: false,
+            content: html, 
+            title: "Load Balance",
+            onConfirm: () => confirmLoadBalance(id)
+        });
+    }
+
+    function confirmLoadBalance(id) {
+        var form = $("#loadBalanceForm");
+        $.validator.unobtrusive.parse(form);
+        if (form?.valid()) {
+            $.ajax({
+                method: "POST",
+                url: "profile/loadBalance",
+                data: {balance: $("#Balance").val(), id},
+                success: function (response) {
+                    if (response.success) {
+                        ShowNotification(response.message, "success");
+                        closeDialog();
+                        loadProfileView();
+                    }
+                    else {
+                        ShowNotification(response.message, "error");
+                    }
+                }
+            })
+        }
+    }
+
+    function transferAmount(id) {
+        openDialog({
+            isAjax: true,
+            url: '/profile/transferamount/'+id,
+            title: "Fund Transfer",
+            onConfirm: () => confirmTransferAmount(id)
+        });
+    }
+    
+    function confirmTransferAmount(id) {
+        var form = $("#transferAmountForm");
+        var data = form.serializeArray();
+
+        $.validator.unobtrusive.parse(form);
+        if (form?.valid()) {
+            if (parseFloat($("#transferAmountForm #Amount").val()) > parseFloat($("#Balance").val())) {
+                ShowNotification("You do not have enough balance to complete this transaction", "error");
+            }
+            
+            showConfirmPopup(id,  form)
+        }
+    }
+    
+    function showConfirmPopup(id, form) {
+        openDialog({
+            isAjax: true,
+            url: '/profile/TransferConfirmation/'+id + `?${form.serialize()}`,
+            onAjaxFailure: () => ShowNotification("Can not find the account. Please try again", "error"),
+            data: form.serialize(),
+            title: "Fund Transfer",
+            onConfirm: () => confirmTransferAmountFinal(id, form)
+        });
+    }
+    
+    function confirmTransferAmountFinal(id, form) {
+        $.ajax({
+            method: "POST",
+            url: "profile/confirmtransfer/"+id, 
+            data: form.serializeArray(),
+            success: function (response) {
+                console.log(response)
+                if (response) {
+                    ShowNotification("Successfully transfered the amount", "success")
+                    loadProfileView()
+                    closeDialog();
+                }
+                else {
+                    ShowNotification("Some error occurred", "error")
+                }
+            }
+        })
+    }
+</script>
+
+<section class="personal-section personal-info-tab">
+    <div class="personal-info-heading ams-block-header">
+        <div class="ams-block-header-left">
+            <h3 class="ps-0">Personal Information</h3>
+            This section contains personal information
+        </div>
+        <div class="">
+            <button onclick="updatePersonalInfo()" class="btn btn-primary">Update</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="input-wrap">
+                <span class="p-label">First Name</span>
+                <div class="p-input-wrap"><b>@Model.FirstName</b></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="input-wrap">
+                <span class="p-label">Middle Name</span>
+                <div class="p-input-wrap"><b>@Model.MiddleName</b></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="input-wrap">
+                <span class="p-label">Last Name</span>
+                <div class="p-input-wrap"><b>@Model.LastName</b></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="input-wrap">
+                <span class="p-label">Address</span>
+                <div class="p-input-wrap"><b>@Model.Address</b></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="input-wrap">
+                <span class="p-label">Country</span>
+                <div class="p-input-wrap"><b>@Model.Country</b></div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<section class="personal-section personal-info-tab">
+    <div class="personal-info-heading ams-block-header">
+        <div class="ams-block-header-left">
+            <h3 class="ps-0">Financial Information</h3>
+            This section contains financial information
+        </div>
+    </div>
+    
+    @if (Model.BankAccounts.Count() <= 0)
+    {
+        <h3 class="mt-4" align="center">
+            You don't have any bank account associated to your profile.
+            <br/> <button onclick="addAccount()" class="btn btn-primary">Add Account</button>
+        </h3>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="my-4">Bank Accounts:</h3>
+            <button class="btn btn-primary" onclick="addAccount()">Add</button>
+        </div>
+        foreach (var account in Model.BankAccounts)
+        {
+            <div class="personal-info-tab d-flex justify-content-between align-items-center">
+                <div>
+                    @account.BankName (@account.BankAccountNumber)
+                    <b>Balance: @currency <span class="text-success">@(account.Balance ?? 0)</span></b>
+                </div>
+                <div>
+                    <button class="btn btn-secondary"  onclick="loadBalance('@account.Id')">Load Balance</button>
+                    <button class="btn btn-warning" onclick="transferAmount('@account.Id')">Transfer</button>
+                </div>
+            </div>
+        }
+    }
+</section>
+
+
