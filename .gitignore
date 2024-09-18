@@ -3,4 +3,7 @@
 ################################################################################
 
 /.vs/InternationalPaymentTransfer
-/Application/obj/Debug/net8.0/Application.AssemblyInfo.cs
+.idea/
+bin
+obj
+packages
